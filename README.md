@@ -9,3 +9,9 @@ The main app has been written in Python and is located in the /src directory. Se
 ## Test Environment
 
 A test environment can be spun up using the included bash scripts which will leverage docker and LocalStack to spin up S3 bucket(s) and populate them with objects to run the main app against. The bash scripts can be found in the /scripts dir along with additional info in the README.
+
+## Diagram
+
+Brief diagram showing CI/CD implementation + AWS architecture.
+
+![diagram](docs/images/s3_bucket_cleanup.png)
