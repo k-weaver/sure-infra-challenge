@@ -29,3 +29,19 @@ Example running the script against a LocalStack for testing:
 ```bash
   python3 src/main.py --days 10 --endpoint "http://localhost:4566" --dry-run
 ```
+
+## Tests
+
+Tests are currently in place for the methods on the s3 module. These are designed to be run using pytest.
+
+Install dev dependencies into existing virtual environment:
+
+```bash
+poetry install --with=dev
+```
+
+Run the tests:
+
+```bash
+pytest
+```
