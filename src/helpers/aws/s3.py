@@ -65,9 +65,9 @@ class S3Manager:
             time_check = last_modified > time_delta
 
             if time_check:
-                dirName = bucket_name + "/" + s3_object["Key"].split("/")[0]
-                if dirName not in deployment_dirs:
-                    deployment_dirs.append(dirName)
+                dir_name = bucket_name + "/" + s3_object["Key"].split("/")[0]
+                if dir_name not in deployment_dirs:
+                    deployment_dirs.append(dir_name)
         print(f"  -- Deployment directories ready for deletion: {deployment_dirs}")
         return deployment_dirs
 
