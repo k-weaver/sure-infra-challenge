@@ -20,9 +20,9 @@ Install the required Python modules
 
 Run the script with the correct params
 
---days - This is used to overwrite the number of days the logic will look back
---endpoint - This is used for local testing, the endpoint should be your localhost (see example)
---dry-run - This is a flag used to show what would be deleted without actually taking action
+- --days - This is used to overwrite the number of days the logic will look back
+- --endpoint - This is used for local testing, the endpoint should be your localhost (see example)
+- --dry-run - This is a flag used to show what would be deleted without actually taking action
 
 Example running the script against a LocalStack for testing:
 
