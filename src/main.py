@@ -1,121 +1,29 @@
-import os
-import typing
-from datetime import datetime, timedelta
-import pytz
-
-import boto3
-
-if typing.TYPE_CHECKING:
-    from mypy_boto3_s3 import S3Client
+import argparse
+from helpers.aws.s3 import S3Manager
 
 
-def s3_client(endpoint: str | None) -> "S3Client":
-    """Create an S3 client with boto3
+def main(days_to_check: int, endpoint_url: str | None):
+    """Get all S3 buckets and delete deployment objects older than X days."""
+    s3_manager = S3Manager(endpoint=endpoint_url)
 
-    Args:
-        endpoint (str | None): _description_
-
-    Returns:
-        S3Client: _description_
-    """
-    return boto3.client("s3", endpoint_url=endpoint)
-
-
-def get_s3_buckets() -> list:
-    """Get a list of all S3 buckets that start with the prefix "sure-app"
-
-    Returns:
-        list: List of buckets that start with the prefix "sure-app"
-    """
-    compiled_bucket_list = []
-    app_bucket_prefix = "sure-app"
-    s3_bucket_list = S3_CLIENT.list_buckets()
-
-    for bucket in s3_bucket_list["Buckets"]:
-        if bucket["Name"].startswith(app_bucket_prefix):
-            compiled_bucket_list.append(bucket["Name"])
-    print(f"App buckets: {compiled_bucket_list}")
-    return compiled_bucket_list
-
-
-def get_deployment_dirs(bucket_name: str, days_to_check: int) -> list:
-    """Get a list of deployment directories from S3 that are ready for deletion
-
-    Args:
-        bucket_name (str): Name of S3 bucket to check
-        days_to_check (int): Number of days to check for deployment directories
-
-    Returns:
-        list: List of deployment directories that are ready for deletion
-    """
-    deployment_dirs = []
-    # timedelta set to milliseconds for testing, this should be set to days or weeks
-    time_delta = datetime.now() - timedelta(days=days_to_check)
-
-    # Convert time_delta to offset-aware
-    time_delta = time_delta.replace(tzinfo=pytz.UTC)
-
-    s3_objects = S3_CLIENT.list_objects_v2(Bucket=bucket_name)
-    print(f"Current bucket: {bucket_name}")
-    for s3_object in s3_objects.get("Contents", []):
-        last_modified = s3_object.get("LastModified", [])
-
-        # Check if the object was last modified before the time_delta
-        # This is crucial piece of logic to determine if the object is ready for deletion
-        # Use extreme caution when modifying this logic
-        time_check = last_modified > time_delta
-
-        if time_check:
-            dirName = bucket_name + "/" + s3_object["Key"].split("/")[0]
-            if dirName not in deployment_dirs:
-                deployment_dirs.append(dirName)
-    print(f"  -- Deployment directories ready for deletion: {deployment_dirs}")
-    return deployment_dirs
-
-
-def delete_deployment_objects(deployment_dirs: list) -> None:
-    """Deletes deployment objects from S3
-
-    Args:
-        deployment_dirs (list): List of deployment directories to query and delete
-    """
-    for deployment_dir in deployment_dirs:
-        s3_bucket = deployment_dir.split("/")[0]
-        s3_object_prefix = deployment_dir.split("/")[1]
-
-        objets_to_delete = S3_CLIENT.list_objects_v2(
-            Bucket=s3_bucket, Prefix=s3_object_prefix
+    buckets = s3_manager.get_s3_buckets()
+    for bucket in buckets:
+        deployment_dirs = s3_manager.get_deployment_dirs(
+            bucket, days_to_check=days_to_check
         )
-        print(f"Current bucket: {s3_bucket}")
-        for obj in objets_to_delete.get("Contents", []):
-            print(f"  -- Deleting object: {obj['Key']}")
+        s3_manager.delete_deployment_objects(deployment_dirs)
 
-
-def setup_local_aws_credentials() -> None | str:
-    """Set up local AWS credentials
-
-    Returns:
-        None | str: Endpoint URL for localstack. Returns None if the STAGE is not set to "local"
-    """
-    endpoint = None
-    if os.getenv("STAGE") == "local":
-        endpoint = "http://localhost:4566"
-        return endpoint
-
-
-def main():
-    # ENDPOINT_URL = setup_local_aws_credentials()
-    # S3_CLIENT = s3_client("http://localhost:4566")
-    deployments_to_delete = []
-    s3_bucket_list = get_s3_buckets()
-
-    for s3_bucket in s3_bucket_list:
-        deployments_to_delete.extend(get_deployment_dirs(s3_bucket, 45))
-    delete_deployment_objects(deployments_to_delete)
-
-
-ENDPOINT_URL = setup_local_aws_credentials()
-S3_CLIENT = s3_client("http://localhost:4566")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--days", type=int, default=30, help="Number of days to check for old objects."
+    )
+    parser.add_argument(
+        "--endpoint",
+        type=str,
+        default=None,
+        help="The endpoint URL for the S3 client. Defaults to None. This is mainly used for testing with LocalStack.",
+    )
+    args = parser.parse_args()
+    main(days_to_check=args.days, endpoint_url=args.endpoint)
