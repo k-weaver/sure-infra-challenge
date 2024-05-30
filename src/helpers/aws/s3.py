@@ -11,8 +11,13 @@ if typing.TYPE_CHECKING:
 class S3Manager:
     """S3 Manager class to interact with S3 buckets and objects."""
 
-    def __init__(self, endpoint: str | None):
-        self.s3_client = self.get_s3_client(endpoint)
+    def __init__(self, endpoint: str | None, s3_client: "S3Client"):
+        # This is required for testing purposes to ensure the S3 client is mocked
+        # using the same client as the one passed in the test.
+        if s3_client:
+            self.s3_client = s3_client
+        else:
+            self.s3_client = self.get_s3_client(endpoint)
 
     @staticmethod
     def get_s3_client(endpoint: str | None) -> "S3Client":
@@ -64,7 +69,7 @@ class S3Manager:
             last_modified = s3_object.get("LastModified", [])
             time_check = time_delta > last_modified
 
-            if time_check:
+            if time_check and "deploy" in s3_object["Key"]:
                 dir_name = bucket_name + "/" + s3_object["Key"].split("/")[0]
                 if dir_name not in deployment_dirs:
                     deployment_dirs.append(dir_name)
