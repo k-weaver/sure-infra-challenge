@@ -71,7 +71,7 @@ class S3Manager:
         print(f"  -- Deployment directories ready for deletion: {deployment_dirs}")
         return deployment_dirs
 
-    def delete_deployment_objects(self, deployment_dirs: list) -> None:
+    def delete_deployment_objects(self, deployment_dirs: list, dry_run: bool) -> None:
         """Delete all objects in the deployment directories.
 
         Args:
@@ -86,4 +86,10 @@ class S3Manager:
             )
             print(f"Current bucket: {s3_bucket}")
             for obj in objects_to_delete.get("Contents", []):
-                print(f"  -- Deleting object: {obj['Key']}")
+                if not dry_run:
+                    print(f"  -- Deleting object: {obj['Key']}")
+                    self.s3_client.delete_object(Bucket=s3_bucket, Key=obj["Key"])
+                else:
+                    print(
+                        f"  -- Dry-run mode enabled. Would have deleted object: {obj['Key']}"
+                    )

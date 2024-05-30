@@ -2,7 +2,7 @@ import argparse
 from helpers.aws.s3 import S3Manager
 
 
-def main(days_to_check: int, endpoint_url: str | None):
+def main(days_to_check: int, endpoint_url: str | None, dry_run: bool):
     """Get all S3 buckets and delete deployment objects older than X days."""
     s3_manager = S3Manager(endpoint=endpoint_url)
 
@@ -11,7 +11,7 @@ def main(days_to_check: int, endpoint_url: str | None):
         deployment_dirs = s3_manager.get_deployment_dirs(
             bucket, days_to_check=days_to_check
         )
-        s3_manager.delete_deployment_objects(deployment_dirs)
+        s3_manager.delete_deployment_objects(deployment_dirs, dry_run=dry_run)
 
 
 if __name__ == "__main__":
@@ -25,5 +25,10 @@ if __name__ == "__main__":
         default=None,
         help="The endpoint URL for the S3 client. Defaults to None. This is mainly used for testing with LocalStack.",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run the script in dry-run mode. When enabled; This will not delete any objects but will print the objects that would have been deleted. Defaults to False.",
+    )
     args = parser.parse_args()
-    main(days_to_check=args.days, endpoint_url=args.endpoint)
+    main(days_to_check=args.days, endpoint_url=args.endpoint, dry_run=args.dry_run)
