@@ -1,2 +1,4 @@
 localReqs
 s3_cleanup
+*.pyc
+__pycache__
