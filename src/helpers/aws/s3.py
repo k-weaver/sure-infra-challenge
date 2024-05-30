@@ -62,7 +62,7 @@ class S3Manager:
         print(f"Current bucket: {bucket_name}")
         for s3_object in s3_objects.get("Contents", []):
             last_modified = s3_object.get("LastModified", [])
-            time_check = last_modified > time_delta
+            time_check = time_delta > last_modified
 
             if time_check:
                 dir_name = bucket_name + "/" + s3_object["Key"].split("/")[0]
