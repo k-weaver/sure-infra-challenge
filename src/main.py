@@ -17,7 +17,10 @@ def main(days_to_check: int, endpoint_url: str | None, dry_run: bool):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--days", type=int, default=30, help="Number of days to check for old objects."
+        "--days",
+        type=float,
+        default=30,
+        help="Number of days to check for old objects.",
     )
     parser.add_argument(
         "--endpoint",
