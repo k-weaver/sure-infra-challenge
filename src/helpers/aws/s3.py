@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 class S3Manager:
     """S3 Manager class to interact with S3 buckets and objects."""
 
-    def __init__(self, endpoint: str | None, s3_client: "S3Client"):
+    def __init__(self, endpoint: str | None, s3_client: "S3Client" = None):
         # This is required for testing purposes to ensure the S3 client is mocked
         # using the same client as the one passed in the test.
         if s3_client:
