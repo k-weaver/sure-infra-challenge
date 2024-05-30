@@ -10,10 +10,23 @@ if typing.TYPE_CHECKING:
 
 
 def s3_client(endpoint: str | None) -> "S3Client":
+    """Create an S3 client with boto3
+
+    Args:
+        endpoint (str | None): _description_
+
+    Returns:
+        S3Client: _description_
+    """
     return boto3.client("s3", endpoint_url=endpoint)
 
 
 def get_s3_buckets() -> list:
+    """Get a list of all S3 buckets that start with the prefix "sure-app"
+
+    Returns:
+        list: List of buckets that start with the prefix "sure-app"
+    """
     compiled_bucket_list = []
     app_bucket_prefix = "sure-app"
     s3_bucket_list = S3_CLIENT.list_buckets()
@@ -26,6 +39,15 @@ def get_s3_buckets() -> list:
 
 
 def get_deployment_dirs(bucket_name: str, days_to_check: int) -> list:
+    """Get a list of deployment directories from S3 that are ready for deletion
+
+    Args:
+        bucket_name (str): Name of S3 bucket to check
+        days_to_check (int): Number of days to check for deployment directories
+
+    Returns:
+        list: List of deployment directories that are ready for deletion
+    """
     deployment_dirs = []
     # timedelta set to milliseconds for testing, this should be set to days or weeks
     time_delta = datetime.now() - timedelta(days=days_to_check)
@@ -52,6 +74,11 @@ def get_deployment_dirs(bucket_name: str, days_to_check: int) -> list:
 
 
 def delete_deployment_objects(deployment_dirs: list) -> None:
+    """Deletes deployment objects from S3
+
+    Args:
+        deployment_dirs (list): List of deployment directories to query and delete
+    """
     for deployment_dir in deployment_dirs:
         s3_bucket = deployment_dir.split("/")[0]
         s3_object_prefix = deployment_dir.split("/")[1]
@@ -65,6 +92,11 @@ def delete_deployment_objects(deployment_dirs: list) -> None:
 
 
 def setup_local_aws_credentials() -> None | str:
+    """Set up local AWS credentials
+
+    Returns:
+        None | str: Endpoint URL for localstack. Returns None if the STAGE is not set to "local"
+    """
     endpoint = None
     if os.getenv("STAGE") == "local":
         endpoint = "http://localhost:4566"
@@ -84,4 +116,6 @@ def main():
 
 ENDPOINT_URL = setup_local_aws_credentials()
 S3_CLIENT = s3_client("http://localhost:4566")
-main()
+
+if __name__ == "__main__":
+    main()
