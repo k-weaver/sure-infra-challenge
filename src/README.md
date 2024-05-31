@@ -20,14 +20,14 @@ Install the required Python modules
 
 Run the script with the correct params
 
-- --days - This is used to overwrite the number of days the logic will look back
+- --deployments-to-keep - Number of deployments to retain
 - --endpoint - This is used for local testing, the endpoint should be your localhost (see example)
 - --dry-run - This is a flag used to show what would be deleted without actually taking action
 
 Example running the script against a LocalStack for testing:
 
 ```bash
-  python3 src/main.py --days 10 --endpoint "http://localhost:4566" --dry-run
+  python3 src/main.py --deployments-to-keep 1 --endpoint "http://localhost:4566" --dry-run
 ```
 
 ## Tests
