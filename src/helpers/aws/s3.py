@@ -69,12 +69,47 @@ class S3Manager:
             last_modified = s3_object.get("LastModified", [])
             time_check = time_delta > last_modified
 
-            if time_check and "deploy" in s3_object["Key"]:
+            if time_check:
                 dir_name = bucket_name + "/" + s3_object["Key"].split("/")[0]
                 if dir_name not in deployment_dirs:
                     deployment_dirs.append(dir_name)
         print(f"  -- Deployment directories ready for deletion: {deployment_dirs}")
         return deployment_dirs
+
+    def get_oldest_deployment_dir_by_count(self, bucket_name: str, count: int) -> list:
+        """Get the oldest deployment directories in the S3 bucket based on the count.
+
+        Args:
+            bucket_name (str): The name of the S3 bucket to check.
+            count (int): The number of deployment directories to keep.
+
+        Returns:
+            list: A list of bucket dirs (bucketname/prefix) that should be deleted. This is the difference of the number of objects returned and the count passed.
+        """
+        deployment_dirs = []
+        common_s3_parent_dirs = self.s3_client.list_objects_v2(
+            Bucket=bucket_name, Delimiter="/"
+        )["CommonPrefixes"]
+
+        if len(common_s3_parent_dirs) <= count:
+            return deployment_dirs
+
+        common_prefixes_with_dates = []
+        for prefix in common_s3_parent_dirs:
+            objects = self.s3_client.list_objects_v2(
+                Bucket=bucket_name, Prefix=prefix["Prefix"]
+            )["Contents"]
+
+            # Max is used here to get the latest date of the objects in the prefix.
+            # This is required in instances where the deployment directory has multiple objects which are updated at different times.
+            latest_date = max(obj["LastModified"] for obj in objects)
+            common_prefixes_with_dates.append((prefix["Prefix"], latest_date))
+
+        common_prefixes_with_dates.sort(key=lambda x: x[1], reverse=True)
+        sorted_common_prefixes = [
+            f"{bucket_name}/{prefix}" for prefix, date in common_prefixes_with_dates
+        ]
+        return sorted_common_prefixes[count:]
 
     def delete_deployment_objects(self, deployment_dirs: list, dry_run: bool) -> None:
         """Delete all objects in the deployment directories.

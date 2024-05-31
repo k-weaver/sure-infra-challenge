@@ -29,7 +29,7 @@ def setup_s3_bucket(s3_client):
     s3_client.create_bucket(Bucket=bucket_name)
     s3_client.put_object(Bucket=bucket_name, Key="deploy1/2024-01-01/index.html")
     s3_client.put_object(Bucket=bucket_name, Key="deploy2/2024-01-02/index.html")
-    s3_client.put_object(Bucket=bucket_name, Key="files/2024-01-03/index.html")
+    s3_client.put_object(Bucket=bucket_name, Key="deploy3/2024-01-03/index.html")
     return bucket_name
 
 
@@ -54,7 +54,19 @@ def test_get_deployment_dirs(s3_client, s3_bucket):
 
     assert "sure-app-test-bucket/deploy1" in deployment_dirs
     assert "sure-app-test-bucket/deploy2" in deployment_dirs
-    assert "sure-app-test-bucket/files" not in deployment_dirs
+    assert "sure-app-test-bucket/deploy3" in deployment_dirs
+
+
+def test_get_oldest_deployment_dir_by_count(s3_client, s3_bucket):
+    """Verifies that the get_oldest_deployment_dir_by_count method returns the correct list of deployment directories."""
+    bucket_name = s3_bucket
+
+    manager = S3Manager(endpoint=None, s3_client=s3_client)
+    deployment_dirs = manager.get_oldest_deployment_dir_by_count(
+        bucket_name=bucket_name, count=1
+    )
+
+    assert len(deployment_dirs) == 2
 
 
 def test_delete_deployment_objects(s3_client, s3_bucket):
