@@ -33,12 +33,12 @@ def setup_s3_bucket(s3_client):
     return bucket_name
 
 
-def test_get_s3_buckets(s3_client, s3_bucket):
+def test_get_s3_deploy_buckets(s3_client, s3_bucket):
     """Verifies that the get_s3_buckets method returns the correct list of S3 buckets."""
     bucket_name = s3_bucket
 
     manager = S3Manager(endpoint=None, s3_client=s3_client)
-    buckets = manager.get_s3_buckets()
+    buckets = manager.get_s3_deploy_buckets()
 
     assert bucket_name in buckets
 

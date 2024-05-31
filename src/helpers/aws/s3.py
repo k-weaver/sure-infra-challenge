@@ -33,7 +33,7 @@ class S3Manager:
         """
         return boto3.client("s3", endpoint_url=endpoint)
 
-    def get_s3_buckets(self) -> list:
+    def get_s3_deploy_buckets(self) -> list:
         """Get all S3 buckets with the prefix "sure-app".
 
         Returns:
@@ -83,8 +83,7 @@ class S3Manager:
             deployment_dirs (list): A list of deployment directories to delete objects from.
         """
         for deployment_dir in deployment_dirs:
-            s3_bucket = deployment_dir.split("/")[0]
-            s3_object_prefix = deployment_dir.split("/")[1]
+            s3_bucket, s3_object_prefix = deployment_dir.split("/", 1)
 
             objects_to_delete = self.s3_client.list_objects_v2(
                 Bucket=s3_bucket, Prefix=s3_object_prefix

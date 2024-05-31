@@ -6,7 +6,7 @@ def main(days_to_check: int, endpoint_url: str | None, dry_run: bool):
     """Get all S3 buckets and delete deployment objects older than X days."""
     s3_manager = S3Manager(endpoint=endpoint_url)
 
-    buckets = s3_manager.get_s3_buckets()
+    buckets = s3_manager.get_s3_deploy_buckets()
     for bucket in buckets:
         deployment_dirs = s3_manager.get_deployment_dirs(
             bucket, days_to_check=days_to_check
